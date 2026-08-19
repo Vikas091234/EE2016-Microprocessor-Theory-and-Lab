@@ -1,187 +1,309 @@
-# EE2016 Microprocessor Theory + Lab — Technical Report
+# EE2016 — Microprocessor Theory + Lab
 
 ## 1. Overview
 
-EE2016 Microprocessor Theory + Lab covers low-level processor programming and embedded-system interfacing across FPGA, AVR, ARM/LPC2148, and IoT-based experiments.
+This report summarizes the laboratory work completed for EE2016 – Microprocessor Theory + Lab.
 
-The submitted repository preserves the implementation artifacts and personal lab reports from the available coursework archive. The emphasis is on the actual code and hardware-facing work rather than course handouts or vendor documentation.
+The experiments cover FPGA arithmetic implementation, AVR assembly programming, microcontroller peripherals and interrupts, MQTT-based IoT communication, ARM assembly, LPC2148 GPIO interfacing, and ADC/DAC implementation.
 
-## 2. Technical Coverage
+---
 
-The retained material demonstrates work across:
+## 2. Experiment 1 — FPGA Multiplier
 
-- FPGA board constraints
-- AVR assembly programming
-- external interrupt handling
-- embedded C
-- MQTT publish/subscribe communication
-- sensor/ADC integration
-- LCD interfacing
-- LPC2148 GPIO
-- stepper motor control
-- ADC conversion and digital readout
-- DAC waveform generation
-- ARM assembly/emulation
+The first experiment implements two 4-bit multiplication techniques on an FPGA:
 
-## 3. Experiment 01 — FPGA
+1. serial-parallel multiplication
+2. Booth multiplication
 
-The retained artifact is an Artix-7 XDC constraint file.
+The design targets an EDGE Artix-7 FPGA development board using Xilinx Vivado.
 
-It assigns physical FPGA pins to interfaces including:
+The submitted report contains Verilog implementations and discusses the computational efficiency of the two multiplication approaches.
 
-- clock
-- 16 switches
-- 16 LEDs
-- push buttons
-- seven-segment display
-- Bluetooth TX/RX
-- buzzer
-- SPI DAC
-- HDMI
-- 2×16 LCD
-- SDRAM
+The serial-parallel multiplier uses an accumulator and repeated shift/add operations. Booth multiplication reduces unnecessary operations for suitable signed binary patterns through recoding of the multiplier.
 
-Because the supplied folder does not include a complete HDL top-level source, this repository treats the experiment as a board-constraint artifact rather than claiming a complete FPGA implementation.
+---
 
-## 4. Experiment 02 — AVR Emulation
+## 3. Experiment 2 — ATmega8 Assembly Emulation
 
-The supplied personal report is retained under `reports/`. The original coursework archive did not provide a separate source implementation alongside the report, so the repository does not invent or reconstruct one.
+The second experiment develops arithmetic and logical programs for the ATmega8 using assembly-language emulation.
 
-## 5. Experiment 03 — AVR Hardware
+The submitted work includes:
 
-The supplied personal report documents the hardware experiment. The original archive includes a demonstration video and course documentation, but these are intentionally not part of the GitHub repository.
+- 8-bit addition
+- 16-bit addition
+- multiplication
+- comparison
 
-## 6. Experiment 04 — AVR Interrupts
+The experiment provides practical exposure to:
 
-The repository includes an AVR assembly implementation for external interrupt handling using INT1.
+- AVR registers
+- immediate and register operations
+- arithmetic instructions
+- status flags
+- instruction-level debugging
 
-The experiment demonstrates low-level control of processor interrupt mechanisms and interrupt-driven execution.
+---
 
-## 7. Experiment 05 — M2M Communication / IoT
+## 4. Experiment 3 — AVR Peripheral Interfacing
 
-This is the most substantial embedded implementation retained from the course.
+The third experiment moves from emulation to hardware interfacing.
 
-### 7.1 MQTT communication
+The submitted work implements:
 
-The repository contains separate publisher and subscriber programs, including commented/annotated variants and an LCD-enabled version.
+### LED blinking
 
-The conceptual communication path is:
+An AVR assembly program configures an LED output and generates a periodic blink using delay loops.
+
+### Push-button controlled LED
+
+A push-button input is read through an AVR input port and used to control an LED.
+
+### DIP-switch nibble addition
+
+An 8-bit DIP-switch input is used to obtain values for a 4-bit/nibble addition operation.
+
+The experiment demonstrates direct manipulation of AVR I/O registers:
 
 ```text
-AVR-IoT device
-     |
-     | MQTT publish
-     v
-MQTT broker
-     |
-     | MQTT subscribe
-     v
-Receiving device
+DDRx   → pin direction
+PORTx  → output / pull-up control
+PINx   → input reading
 ```
 
-### 7.2 Sensor and display integration
+---
 
-The second task integrates ADC-derived light information with MQTT and LCD output.
+## 5. Experiment 4 — External Interrupts
 
-Conceptually:
+The fourth experiment implements the ATmega8 external interrupts:
 
 ```text
-Light sensor
-    ↓
-ADC acquisition
-    ↓
-AVR processing
-    ↓
-MQTT message
-    ↓
+INT0
+INT1
+```
+
+Push buttons connected to the interrupt pins trigger the corresponding interrupt service routines.
+
+The submitted implementation configures falling-edge detection and enables the interrupts through the AVR interrupt-control registers.
+
+The ISR:
+
+1. saves required processor state;
+2. performs the LED blinking operation;
+3. restores the saved state;
+4. returns using `RETI`.
+
+The experiment demonstrates event-driven execution instead of continuously polling an input.
+
+---
+
+## 6. Experiment 5 — MQTT and AVR-IoT
+
+The fifth experiment introduces embedded networking using MQTT.
+
+The hardware platform is the **AVR-IoT WG**, based on an ATmega4808 and equipped with Wi-Fi connectivity.
+
+### MQTT publisher/subscriber model
+
+A Mosquitto broker is used as the central MQTT server.
+
+```text
+MQTT Publisher
+       |
+       | publish(topic, message)
+       v
+   Mosquitto
+    Broker
+       |
+       | subscribe(topic)
+       v
+MQTT Subscriber
+```
+
+The submitted report demonstrates communication between clients connected through the same network.
+
+### AVR-IoT integration
+
+The repository includes C implementations for MQTT publishing and subscription.
+
+The second task extends the communication system with ADC-derived light information and an LCD.
+
+```text
+Light / ADC input
+       ↓
+AVR-IoT processing
+       ↓
+MQTT publisher
+       ↓
+Mosquitto broker
+       ↓
 MQTT subscriber
-    ↓
-LCD display
+       ↓
+LCD
 ```
 
-This experiment demonstrates a complete embedded data path from sensing to communication to presentation.
+This experiment combines embedded programming, networking, sensing, and display interfacing.
 
-## 8. Experiment 06 — ARM Assembly
+---
 
-The supplied personal lab report is retained. The implementation is associated with ARM assembly emulation work. Vendor/reference material from the original coursework archive is excluded.
+## 7. Experiment 6 — ARM Assembly
 
-## 9. Experiment 07 — LPC2148 GPIO and Stepper Motor
+The sixth experiment introduces ARM assembly programming and emulation using Keil µVision.
 
-The repository includes three embedded C implementations.
+The submitted report discusses:
 
-### DIP-switch to LED
+- ARM architecture
+- register organization
+- RISC characteristics
+- load/store operation
+- ARM instruction set
 
-Reads GPIO switch states and drives corresponding LEDs.
+The report includes assembly implementation of a factorial computation.
 
-### LED test
+The experiment provides experience with low-level programming on a 32-bit ARM architecture.
 
-Initializes the LED output pins and maps a byte value to the LED bank using bit operations.
+---
 
-### Stepper motor
+## 8. Experiment 7 — LPC2148 GPIO Interfacing
 
-Uses a four-element sequence:
+The seventh experiment uses the LPC2148 ARM7 microcontroller.
+
+The work includes three embedded-C programs.
+
+### 8.1 DIP-switch and LED interfacing
+
+The DIP-switch program configures the switch pins as inputs and reads their state through GPIO registers.
+
+The corresponding LEDs are controlled according to the switch inputs.
+
+### 8.2 LED output
+
+The LED test program configures the LED pins as GPIO outputs and displays a byte value using the LED bank.
+
+The implementation uses explicit bit masks for the LED pins.
+
+### 8.3 Stepper motor
+
+The stepper-motor program configures the motor-control pins as outputs and repeatedly applies the sequence:
 
 ```text
-0x09 → 0x0C → 0x06 → 0x03
+0x09
+0x0C
+0x06
+0x03
 ```
 
-and repeatedly sends the sequence to the motor control pins to produce stepping motion.
+The sequence is applied with a software delay between steps.
 
-This demonstrates GPIO configuration, bit manipulation, timing loops, and peripheral control on the LPC2148.
+This demonstrates direct GPIO control and timing-sensitive peripheral operation.
 
-## 10. Experiment 08 — ADC / DAC
+---
 
-### ADC
+## 9. Experiment 8 — ADC and DAC
 
-The ADC implementation:
+The final experiment implements analog-to-digital and digital-to-analog conversion on the LPC2148.
 
-1. selects an ADC channel;
-2. configures the ADC clock and operating mode;
-3. starts a conversion;
-4. waits for the conversion-complete flag;
-5. checks for overrun;
-6. extracts the 10-bit conversion result;
-7. maps the value to LEDs.
+### 9.1 ADC
 
-The code defines a 3.3 V reference and a 10-bit full-scale conversion count of 1024.
+The ADC implementation uses a 10-bit conversion system with a 3.3 V reference.
 
-### DAC
+The processing flow is:
 
-The DAC program configures the LPC2148 DAC output and alternates between low and high digital values with a delay, generating a square-wave output.
+```text
+Select ADC channel
+       ↓
+Configure ADC
+       ↓
+Start conversion
+       ↓
+Wait for ADC_DONE
+       ↓
+Check ADC_OVERRUN
+       ↓
+Extract conversion result
+       ↓
+Display result using LEDs
+```
 
-## 11. Relevance to Embedded / Hardware Roles
+The implementation supports ADC channels through channel-selection constants.
 
-The experiments collectively demonstrate low-level interaction with hardware rather than only application-level programming.
+### 9.2 DAC
 
-The most resume-relevant technical areas are:
+The DAC implementation configures the LPC2148 DAC output and generates a square wave.
 
+The output alternates between:
+
+```text
+DACR = 0 | DAC_BIAS
+```
+
+and:
+
+```text
+DACR = (0x3FF << 6) | DAC_BIAS
+```
+
+with a software delay between the two levels.
+
+---
+
+## 10. Technical Skills
+
+The experiments collectively provide experience in several layers of embedded and digital-system design.
+
+### Low-level programming
+
+- AVR assembly
+- ARM assembly
 - embedded C
-- assembly programming
-- microcontroller peripherals
+- register-level programming
+- bit manipulation
+
+### Digital hardware
+
+- FPGA arithmetic
+- FPGA pin constraints
 - GPIO
-- ADC/DAC
 - interrupts
-- MQTT and embedded networking
-- sensor integration
+- ADC
+- DAC
+
+### Embedded systems
+
+- sensor acquisition
 - LCD interfacing
-- FPGA board constraints
-- ARM/AVR architectures
+- LED and switch interfacing
+- stepper-motor control
+- microcontroller peripherals
 
-For an ML-hardware-oriented profile, this coursework is supporting evidence for understanding the lower layers surrounding accelerated and embedded computation.
+### Embedded networking
 
-## 12. Limitations
+- MQTT
+- publisher/subscriber architecture
+- Mosquitto broker
+- AVR-IoT Wi-Fi communication
 
-This repository represents coursework rather than a production embedded system.
+---
 
-Some experiments are represented primarily by lab reports because the supplied archive did not contain the corresponding source code. Hardware-specific libraries, IDE project files, board manuals, and vendor documentation are not included because they are not necessary to demonstrate the student's implementation and may not be appropriate for redistribution.
+## 11. Conclusion
 
-## 13. Repository Organization
+The EE2016 laboratory work progresses from instruction-level programming to complete embedded-system interfaces.
 
-The final repository separates:
+The major progression is:
 
 ```text
-experiments/  → source code and hardware constraint files
-reports/      → personal lab reports
+AVR Assembly
+     ↓
+AVR Hardware Interfacing
+     ↓
+Interrupts
+     ↓
+IoT / MQTT
+     ↓
+ARM Assembly
+     ↓
+ARM GPIO
+     ↓
+ADC / DAC
 ```
 
-Course manuals, lecture notes, tutorials, vendor manuals, duplicate documents, and unrelated media are intentionally excluded.
+The coursework provides practical exposure to processor architecture, assembly programming, embedded C, peripheral registers, interrupt-driven execution, digital I/O, analog interfaces, FPGA computation, and embedded networking.
